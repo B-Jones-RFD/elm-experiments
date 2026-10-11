@@ -1,16 +1,18 @@
 /** Todos feature: request → Msg → dispatch. IDs and timestamps are minted here. */
 import { Hono, type MiddlewareHandler } from 'hono'
+import { streamSSE } from 'hono/streaming'
 
-import { publish } from '../../shared/bus.js'
+import { publish, subscribe } from '../../shared/bus.js'
 import { dispatch, type Ctx, type Feature } from '../../shared/dispatch.js'
 import { takeFlash } from '../../shared/flash.js'
 import { parseQuery } from '../../shared/query.js'
 import { isHx, type AppEnv } from '../../shared/session.js'
+import { withSpan } from '../../shared/telemetry.js'
 import { currentTheme } from '../../shared/theme.js'
 import { withQuery } from '../../shared/types.js'
 import { init, splitDescriptions, update, type Effect, type Loaded, type Model, type Msg } from './core.js'
 import { todosStore } from './store.js'
-import { AddForm, EditRow, Page, TodoList, TodoRow } from './view.js'
+import { AddForm, EditRow, Page, StaleNotice, TodoList, TodoRow } from './view.js'
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 const list = (v: unknown): string[] =>
@@ -98,6 +100,31 @@ export const todos = (auth: MiddlewareHandler<AppEnv>) => {
     const body = await c.req.parseBody({ all: true })
     return dispatch(c, todosFeature, { type: 'BulkUpdate', toggle: list(body.toggle), remove: list(body.remove), now: now() })
   })
+
+  /**
+   * Subscriptions (Elm's `Sub`): one SSE stream per signed-in browser tab.
+   * The event carries no payload; the client re-fetches the list for its own filter/sort.
+   */
+  r.get('/todos/events', auth, (c) => {
+    const userId = c.var.user.id
+    return streamSSE(c, async (stream) => {
+      let seq = 0
+      const unsubscribe = subscribe(userId, 'todos-changed', () => {
+        void withSpan('sse push todos-changed', () =>
+          stream.writeSSE({ event: 'todos-changed', data: 'changed', id: String(++seq) }),
+        )
+      })
+      stream.onAbort(unsubscribe)
+      await stream.writeSSE({ event: 'connected', data: 'ok' })
+      while (!stream.aborted) {
+        await stream.sleep(25_000)
+        if (!stream.aborted) await stream.writeSSE({ event: 'ping', data: '' })
+      }
+    })
+  })
+
+  // Shown in bulk mode when the list changed elsewhere (FR-L4), instead of replacing the form.
+  r.get('/todos/stale', auth, (c) => c.html(<StaleNotice query={parseQuery(c)} />))
 
   return r
 }

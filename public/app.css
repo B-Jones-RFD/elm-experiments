@@ -97,3 +97,6 @@ html:not(.js) .nojs-only { display: inline-block; }
 .todo.bulk:has(input[name='remove']:checked) .description { text-decoration: line-through; color: var(--danger); }
 .todo.bulk:has(input[name='remove']:checked) .bulk-toggle { opacity: 0.4; pointer-events: none; }
 .bulk-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
+
+/* live updates */
+.stale { margin: 0; padding: 0.5rem 0.75rem; border-radius: 6px; background: color-mix(in srgb, var(--accent) 12%, transparent); font-size: 0.9rem; }

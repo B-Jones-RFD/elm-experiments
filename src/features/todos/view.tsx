@@ -186,13 +186,35 @@ const BulkForm = ({ todos, query }: { todos: Todo[]; query: Query }) => {
 
 // ---- the list ------------------------------------------------------------------
 
+export const StaleNotice = ({ query }: { query: Query }) => (
+  <p class="stale" role="status">
+    Your list changed in another tab.{' '}
+    <a href={withQuery('/', query)} hx-get={withQuery('/', query)} {...listSwap}>
+      Refresh
+    </a>{' '}
+    (staged changes will be discarded).
+  </p>
+)
+
+/**
+ * Live updates: the `sse:todos-changed` trigger comes from the SSE extension on the page wrapper.
+ * Normal mode re-fetches the list for the current filter/sort; bulk mode only shows a notice so
+ * the staged form is never replaced underneath the user.
+ */
+const liveAttrs = (query: Query) =>
+  query.mode === 'bulk'
+    ? {}
+    : { 'hx-trigger': 'sse:todos-changed', 'hx-get': withQuery('/', query), 'hx-swap': 'outerHTML' }
+
 export const TodoList = ({ model, query, editingId }: { model: Model; query: Query; editingId?: string }) => {
   const visible = visibleTodos(model.todos, query)
   const bulkHref = withQuery('/', { ...query, mode: 'bulk' })
   return (
-    <section id="todos" class="todos" data-mode={query.mode}>
+    <section id="todos" class="todos" data-mode={query.mode} {...liveAttrs(query)}>
       <ListHeader model={model} query={query} />
-      <div id="stale-notice" />
+      {query.mode === 'bulk' ? (
+        <div id="stale-notice" hx-trigger="sse:todos-changed" hx-get={withQuery('/todos/stale', query)} hx-swap="innerHTML" />
+      ) : null}
       {visible.length === 0 ? (
         <EmptyState filter={query.filter} />
       ) : query.mode === 'bulk' ? (
@@ -225,7 +247,9 @@ export const Page = ({
   editingId?: string
 }) => (
   <Layout title="Elm Todo" theme={theme} user={model.user} notice={notice}>
-    <AddForm draft={model.draft} query={query} />
-    <TodoList model={model} query={query} editingId={editingId} />
+    <div class="live" hx-ext="sse" sse-connect="/todos/events">
+      <AddForm draft={model.draft} query={query} />
+      <TodoList model={model} query={query} editingId={editingId} />
+    </div>
   </Layout>
 )

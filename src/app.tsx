@@ -15,7 +15,12 @@ import { currentTheme, parseTheme, setThemeCookie } from './shared/theme.js'
 
 export const app = new Hono<AppEnv>()
 
-app.use('*', httpInstrumentationMiddleware({ serviceName: config.serviceName, captureRequestHeaders: ['hx-request', 'hx-target'] }))
+const otel = httpInstrumentationMiddleware({
+  serviceName: config.serviceName,
+  captureRequestHeaders: ['hx-request', 'hx-target'],
+})
+// The SSE stream stays open for minutes; keep it out of request-duration spans (NFR-10).
+app.use('*', (c, next) => (c.req.path === '/todos/events' ? next() : otel(c, next)))
 app.use('/*', serveStatic({ root: './public' }))
 
 app.route('/', users)
