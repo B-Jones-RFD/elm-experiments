@@ -16,6 +16,14 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
     files: ['src/features/**/core.ts', 'src/features/**/view.tsx'],
     rules: {
       'no-restricted-imports': ['error', { paths: impureModules.filter((m) => 'name' in m), patterns: impureModules.filter((m) => 'group' in m) }],
