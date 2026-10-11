@@ -4,6 +4,7 @@ import { httpInstrumentationMiddleware } from '@hono/otel'
 import { SpanStatusCode, trace } from '@opentelemetry/api'
 import { Hono } from 'hono'
 
+import { todos } from './features/todos/routes.js'
 import { users } from './features/users/routes.js'
 import { usersStore } from './features/users/store.js'
 import { config } from './shared/config.js'
@@ -18,6 +19,7 @@ app.use('*', httpInstrumentationMiddleware({ serviceName: config.serviceName, ca
 app.use('/*', serveStatic({ root: './public' }))
 
 app.route('/', users)
+app.route('/', todos(requireUser(usersStore.loadUserById)))
 
 app.post('/theme', async (c) => {
   const body = await c.req.parseBody()
@@ -28,15 +30,6 @@ app.post('/theme', async (c) => {
   }
   return c.redirect(c.req.header('Referer') ?? '/', 303)
 })
-
-// @TODO: replaced by the todos feature in the next step.
-app.get('/', requireUser(usersStore.loadUserById), (c) => (
-  c.html(
-    <Layout title="Elm Todo" theme={currentTheme(c)} user={c.var.user}>
-      <p>Todos coming soon.</p>
-    </Layout>,
-  )
-))
 
 app.notFound((c) =>
   c.html(

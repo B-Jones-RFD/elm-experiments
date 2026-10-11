@@ -59,3 +59,41 @@ button.primary { padding: 0.5rem 1rem; background: var(--accent); color: #fff; b
 .toast-close { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1.1rem; }
 @keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
 @keyframes toast-out { to { opacity: 0; visibility: hidden; } }
+
+/* ---- todos ---- */
+.add-form { display: flex; gap: 0.5rem; }
+.add-form input { flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+.todos { display: grid; gap: 0.75rem; }
+.list-header { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
+.filters { display: flex; gap: 0.25rem; }
+.filters a { padding: 2px 8px; border-radius: 999px; color: var(--muted); text-decoration: none; }
+.filters a[aria-current='page'] { background: var(--accent); color: #fff; }
+.count { flex: 1; }
+.sort-form select { font: inherit; font-size: 0.9rem; padding: 2px 4px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); }
+.todo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.todo { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.5rem; border-radius: 6px; }
+.todo:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.todo .description { flex: 1; }
+.todo.done .description { color: var(--muted); text-decoration: line-through; }
+.toggle-form { display: flex; align-items: center; gap: 0.25rem; margin: 0; }
+.toggle-form input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+.edit-link { color: var(--muted); font-size: 0.85rem; text-decoration: none; opacity: 0; }
+.todo:hover .edit-link, .edit-link:focus { opacity: 1; }
+html:not(.js) .edit-link { opacity: 1; }
+.edit-form { display: flex; flex: 1; gap: 0.5rem; align-items: center; margin: 0; }
+.edit-form input { flex: 1; padding: 0.3rem 0.5rem; border: 1px solid var(--accent); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+.empty { text-align: center; padding: 1rem 0; }
+.button { display: inline-block; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px; color: var(--text); text-decoration: none; background: transparent; font: inherit; cursor: pointer; text-align: center; }
+.nojs-only { display: none; }
+html:not(.js) .nojs-only { display: inline-block; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* bulk mode: preview staged changes with CSS only */
+.bulk-help { margin: 0; }
+.bulk-toggle, .bulk-remove { display: flex; align-items: center; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); cursor: pointer; }
+.bulk-remove { color: var(--danger); }
+.todo.bulk:has(input[name='toggle']:checked):not(.done) .description { text-decoration: line-through; color: var(--muted); }
+.todo.bulk.done:has(input[name='toggle']:checked) .description { text-decoration: none; color: var(--text); }
+.todo.bulk:has(input[name='remove']:checked) .description { text-decoration: line-through; color: var(--danger); }
+.todo.bulk:has(input[name='remove']:checked) .bulk-toggle { opacity: 0.4; pointer-events: none; }
+.bulk-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
