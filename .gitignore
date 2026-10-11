@@ -26,3 +26,10 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+
+# app
+data/*
+!data/.gitkeep
+public/htmx.min.js
+public/sse.min.js
+dist/
